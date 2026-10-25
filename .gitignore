@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.log
+contracts/out/
+contracts/cache/
+contracts/lib/
+contracts/broadcast/*/31337/
