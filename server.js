@@ -26,7 +26,8 @@ const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(securityHeaders);
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
+// Los enlaces llevan ?v=<versión>, así que se pueden cachear mucho tiempo sin riesgo.
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d' }));
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use(express.json({ limit: '10kb' }));
 
