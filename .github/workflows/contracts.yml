@@ -2,7 +2,7 @@ name: Contratos
 
 on:
   push:
-    paths: ["contracts/**", ".github/workflows/contracts.yml"]
+    paths: ["contracts/**", "lib/chain.js", ".github/workflows/contracts.yml"]
   pull_request:
   workflow_dispatch:
 
@@ -29,6 +29,9 @@ jobs:
 
       - name: Pruebas
         run: forge test -vvv
+
+      - name: Selectores de la web
+        run: node script/check-selectors.js
 
       - name: Cobertura
         run: forge coverage --report summary --ir-minimum || true

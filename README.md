@@ -7,6 +7,36 @@ Financiación pública de proyectos de [theaipeoplehub](https://theaipeoplehub.c
 > no debe activarse en la red principal hasta contar con asesoramiento legal (MiCA / CNMV) y una
 > auditoría independiente de los contratos.
 
+## App web (raíz del repo)
+
+Node.js + Express con páginas renderizadas en el servidor, login único con Keycloak y PostgreSQL
+(esquema `fund`). La base de datos guarda solo lo que no está en la blockchain: usuarios, propuestas,
+textos de los proyectos y agenda de desarrollo. Cada operación con tokens la firma el usuario en su
+wallet (`public/wallet.js`, compatible con cualquier wallet EIP-1193); el servidor nunca tiene claves.
+
+| Ruta | Contenido |
+| --- | --- |
+| `/` | Proyectos: más votados (en financiación), activos, agenda de desarrollo |
+| `/projects/:id` | Detalle, invertir, recuperar tokens, retirar ganancias, comprar acceso, votar precio |
+| `/proposals/new` | Proponer un proyecto (meta 1.000–100.000 PHUB y precio inicial) |
+| `/mine` | Wallet vinculada, saldos, inversiones y propuestas |
+| `/comprar` | Compra de PHUB con USDC (solo si la venta está activada) |
+| `/admin` | Aceptar o rechazar propuestas, publicarlas en la blockchain, fijar fecha de desarrollo |
+| `/como-funciona` | Reglas y riesgos |
+
+### Variables de entorno
+
+| Variable | Ejemplo | Para qué |
+| --- | --- | --- |
+| `DATABASE_URL` | URL interna de la Postgres | Datos y sesiones |
+| `SESSION_SECRET` | cadena aleatoria larga | Cookie de sesión |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | realm `theaipeoplehub`, cliente `peoplehub-fund` | Login único |
+| `ADMIN_EMAILS` | `tu@email.com` | Emails con acceso a `/admin` (separados por comas) |
+| `CHAIN_ID` | `84532` (Base Sepolia) o `8453` (Base) | Red |
+| `PHUB_ADDRESS`, `SALE_ADDRESS`, `PROJECTS_ADDRESS` | direcciones del despliegue | Contratos; sin ellas la app muestra solo propuestas |
+| `RPC_URL`, `USDC_ADDRESS` | opcionales | Por defecto, los oficiales de la red elegida |
+| `PLATFORM_URL` | `https://theaipeoplehub-platform.onrender.com` | Enlaces al portal y textos legales |
+
 ## Contratos (`contracts/`)
 
 | Contrato | Qué hace |
