@@ -1,0 +1,49 @@
+name: Desplegar en Base Sepolia (testnet)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: testnet
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Instalar dependencias
+        run: |
+          forge install foundry-rs/forge-std --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
+
+      - name: Pruebas
+        run: forge test
+
+      - name: Desplegar
+        env:
+          OWNER_ADDRESS: ${{ vars.TESTNET_OWNER_ADDRESS }}
+          USDC_ADDRESS: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+          DEPLOYER_KEY: ${{ secrets.TESTNET_DEPLOYER_KEY }}
+        run: |
+          forge script script/Deploy.s.sol \
+            --rpc-url https://sepolia.base.org \
+            --broadcast \
+            --private-key "$DEPLOYER_KEY" | tee deploy.log
+          {
+            echo "## Contratos desplegados en Base Sepolia"
+            echo '```'
+            grep -E "PHUB|PeopleHub|Propietario" deploy.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar direcciones
+        uses: actions/upload-artifact@v4
+        with:
+          name: despliegue-base-sepolia
+          path: contracts/broadcast/Deploy.s.sol/84532/run-latest.json
