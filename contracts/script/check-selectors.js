@@ -2,7 +2,7 @@
 // Uso (desde contracts/, tras forge build): node script/check-selectors.js
 const { execSync } = require('child_process');
 const path = require('path');
-const { SELECTORS } = require(path.join(__dirname, '..', '..', 'lib', 'chain.js'));
+const { SELECTORS } = require(path.join(__dirname, '..', 'web', 'chain.js'));
 const ids = {};
 for (const c of ['PeopleHubToken', 'PeopleHubSale', 'PeopleHubProjects']) {
   const out = JSON.parse(execSync(`forge inspect ${c} methodIdentifiers --json`, { encoding: 'utf8' }));

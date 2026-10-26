@@ -1,43 +1,72 @@
 # PeopleHub Fund
 
-Financiación pública de proyectos de [theaipeoplehub](https://theaipeoplehub.com) con el token
-**PeopleHub (PHUB)** en la red **Base**.
+La fábrica de apps de [theaipeoplehub](https://theaipeoplehub.com): quien tiene una idea y quien sabe
+desarrollarla trabajan juntos, y la comunidad decide qué se construye. Las apps terminadas (como
+WhatWhenAndWhere) se publican en la plataforma.
 
-> **Estado:** contratos en desarrollo y pruebas. La venta de tokens está **desactivada** por defecto y
-> no debe activarse en la red principal hasta contar con asesoramiento legal (MiCA / CNMV) y una
-> auditoría independiente de los contratos.
+## Fase 1 (actual): créditos internos, sin blockchain
 
-## App web (raíz del repo)
+- Todo funciona con **créditos a precio unitario**: 1 crédito = 1 voto = 1 unidad de participación.
+- Los créditos **no se compran ni se canjean por dinero**: no son un activo financiero. Cada usuario
+  recibe `WELCOME_CREDITS` al registrarse (1.000 por defecto) y la administración puede conceder más.
+- Cada cambio de saldo queda en un libro de movimientos (`fund.ledger`); las operaciones bloquean el
+  proyecto dentro de una transacción para que los saldos nunca se descuadren.
 
-Node.js + Express con páginas renderizadas en el servidor, login único con Keycloak y PostgreSQL
-(esquema `fund`). La base de datos guarda solo lo que no está en la blockchain: usuarios, propuestas,
-textos de los proyectos y agenda de desarrollo. Cada operación con tokens la firma el usuario en su
-wallet (`public/wallet.js`, compatible con cualquier wallet EIP-1193); el servidor nunca tiene claves.
+### Ciclo de un proyecto
+
+1. **Crear:** meta (1.000–100.000 créditos), precio inicial de acceso a la app, periodo de desarrollo
+   (7–365 días) y cómo se elige el desarrollador: **invitar por email** o **candidatura abierta**
+   (días de candidatura y votos necesarios).
+2. **Revisión:** la administración acepta o rechaza. Al aceptar empiezan 7 días de financiación y la
+   selección de desarrollador.
+3. **Financiación:** cada crédito aportado es un voto y una participación. Si se llega a la meta, el
+   proyecto pasa a activo; si no, se devuelve todo automáticamente.
+4. **Desarrollador (único):** en candidatura, cada voto cuesta 1 crédito (va a la plataforma) y cada
+   usuario vota una vez; el primero que llega a los votos fijados queda elegido al momento. Si nadie
+   llega, al vencer gana el más votado. Su periodo empieza cuando el proyecto está activo: recibe la
+   financiación y el 28 % de cada nueva inversión. Al terminar, el creador puede elegir otro.
+5. **Proyecto activo:** cada inversión se reparte 60 % participación · 10 % inversores previos ·
+   28 % desarrollo · 2 % comisión. Cada compra de acceso a la app: 95 % participantes · 5 % comisión.
+6. **Precio semanal:** los participantes votan +50/+30/+10/0/−10/−30/−50 %; se aplica la media
+   ponderada por participación al empezar la semana siguiente.
+
+### Ranking de desarrolladores
+
+ELO (base 1.500) actualizado al instante: sube con apoyos y ventas de sus proyectos, con los votos de
+sus candidaturas y al ganar una elección (duelo contra cada candidato con votos); baja si pierde una
+elección o si su proyecto no se financia.
+
+### Rutas
 
 | Ruta | Contenido |
 | --- | --- |
-| `/` | Proyectos: más votados (en financiación), activos, agenda de desarrollo |
-| `/projects/:id` | Detalle, invertir, recuperar tokens, retirar ganancias, comprar acceso, votar precio |
-| `/proposals/new` | Proponer un proyecto (meta 1.000–100.000 PHUB y precio inicial) |
-| `/mine` | Wallet vinculada, saldos, inversiones y propuestas |
-| `/comprar` | Compra de PHUB con USDC (solo si la venta está activada) |
-| `/admin` | Aceptar o rechazar propuestas, publicarlas en la blockchain, fijar fecha de desarrollo |
-| `/como-funciona` | Reglas y riesgos |
+| `/` | Proyectos más apoyados, activos y no financiados |
+| `/projects/new` | Crear proyecto |
+| `/projects/:id` | Detalle: apoyar/invertir, candidatos y votos, invitación, precio, acceso a la app |
+| `/mine` | Saldo, movimientos, proyectos, apoyos, candidaturas e invitaciones |
+| `/desarrolladores` | Ranking ELO |
+| `/admin` | Revisar proyectos, conceder créditos, resumen |
+| `/como-funciona` | Reglas |
 
 ### Variables de entorno
 
-| Variable | Ejemplo | Para qué |
-| --- | --- | --- |
-| `DATABASE_URL` | URL interna de la Postgres | Datos y sesiones |
-| `SESSION_SECRET` | cadena aleatoria larga | Cookie de sesión |
-| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | realm `theaipeoplehub`, cliente `peoplehub-fund` | Login único |
-| `ADMIN_EMAILS` | `tu@email.com` | Emails con acceso a `/admin` (separados por comas) |
-| `CHAIN_ID` | `84532` (Base Sepolia) o `8453` (Base) | Red |
-| `PHUB_ADDRESS`, `SALE_ADDRESS`, `PROJECTS_ADDRESS` | direcciones del despliegue | Contratos; sin ellas la app muestra solo propuestas |
-| `RPC_URL`, `USDC_ADDRESS` | opcionales | Por defecto, los oficiales de la red elegida |
-| `PLATFORM_URL` | `https://theaipeoplehub-platform.onrender.com` | Enlaces al portal y textos legales |
+| Variable | Para qué |
+| --- | --- |
+| `DATABASE_URL`, `SESSION_SECRET` | Base de datos (esquema `fund`) y sesiones |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` | Login único con Keycloak |
+| `ADMIN_EMAILS` | Emails con acceso a `/admin` (separados por comas) |
+| `WELCOME_CREDITS` | Créditos de bienvenida (1.000 por defecto) |
+| `PLATFORM_URL` | Enlaces al portal y textos legales |
 
-## Contratos (`contracts/`)
+## Fase 2 (futura): tokenización
+
+Está previsto convertir los créditos en el token PeopleHub (PHUB) en la red Base cuando exista el marco
+legal adecuado (MiCA / CNMV, posible licencia de financiación participativa) y una auditoría de los
+contratos. Todo lo de esa fase está en `contracts/`: los contratos Solidity con sus pruebas, el script
+de despliegue y el código web de wallet (`contracts/web/`). Las pruebas siguen ejecutándose en GitHub
+Actions para que no se queden obsoletos.
+
+## Contratos de la fase 2 (`contracts/`)
 
 | Contrato | Qué hace |
 | --- | --- |
